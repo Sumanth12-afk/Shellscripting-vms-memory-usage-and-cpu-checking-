@@ -1,0 +1,109 @@
+If your VMs have passwords, you might want to consider using SSH key pairs for passwordless authentication to avoid exposing passwords in your script. However, if using passwords is a requirement, you can use tools like sshpass to automate password input. Make sure to install sshpass on your system before using it.
+
+Here's an example of how you can modify the script with sshpass:
+
+#!/bin/bash
+
+# Get the list of VMs with corresponding passwords
+declare -A vm_passwords=(
+    ["vm1"]="password1"
+    ["vm2"]="password2"
+    # Add more VMs and passwords as needed
+)
+
+for vm in "${!vm_passwords[@]}"
+do
+    echo "VM: $vm"
+
+    # Get CPU usage
+    cpu_usage=$(sshpass -p "${vm_passwords[$vm]}" ssh ubuntu@$vm "top -b -n 1 | grep 'Cpu(s)' | awk '{print \$2 + \$4}'")
+    echo "CPU Usage: $cpu_usage%"
+
+    # Get RAM usage
+    ram_usage=$(sshpass -p "${vm_passwords[$vm]}" ssh ubuntu@$vm "free | grep Mem | awk '{print \$3/$2 * 100.0}'")
+    echo "RAM Usage: $ram_usage%"
+
+    # Get disk space usage
+    disk_usage=$(sshpass -p "${vm_passwords[$vm]}" ssh ubuntu@$vm "df -h / | awk 'NR==2 {print \$5}'")
+    echo "Disk Usage: $disk_usage"
+
+    echo "------------------------"
+done
+
+
+
+
+sample code for ubuntu aas user without passsword for the vms
+
+#!/bin/bash
+
+# Get the list of VMs (assuming you have a list of IP addresses)
+vm_list=("vm1" "vm2" "vm3" ... "vm10000")
+
+for vm in "${vm_list[@]}"
+do
+    echo "VM: $vm"
+
+    # Get CPU usage
+    cpu_usage=$(ssh ubuntu@$vm "top -b -n 1 | grep 'Cpu(s)' | awk '{print \$2 + \$4}'")
+    echo "CPU Usage: $cpu_usage%"
+
+    # Get RAM usage
+    ram_usage=$(ssh ubuntu@$vm "free | grep Mem | awk '{print \$3/$2 * 100.0}'")
+    echo "RAM Usage: $ram_usage%"
+
+    # Get disk space usage
+    disk_usage=$(ssh ubuntu@$vm "df -h / | awk 'NR==2 {print \$5}'")
+    echo "Disk Usage: $disk_usage"
+
+    echo "------------------------"
+done
+
+
+
+
+o send email notifications with the updates, you can use the mail command. Make sure that the mail command is available on your system. Additionally, you may need to configure your local mail server or use a tool like ssmtp to send emails. Below is the modified script:
+
+
+#!/bin/bash
+
+# Get the list of VMs with corresponding passwords and email address
+declare -A vm_passwords=(
+    ["vm1"]="password1"
+    ["vm2"]="password2"
+    # Add more VMs and passwords as needed
+)
+
+recipient_email="your_email@example.com"
+
+for vm in "${!vm_passwords[@]}"
+do
+    echo "VM: $vm"
+
+    # Get CPU usage
+    cpu_usage=$(sshpass -p "${vm_passwords[$vm]}" ssh ubuntu@$vm "top -b -n 1 | grep 'Cpu(s)' | awk '{print \$2 + \$4}'")
+    echo "CPU Usage: $cpu_usage%"
+
+    # Get RAM usage
+    ram_usage=$(sshpass -p "${vm_passwords[$vm]}" ssh ubuntu@$vm "free | grep Mem | awk '{print \$3/$2 * 100.0}'")
+    echo "RAM Usage: $ram_usage%"
+
+    # Get disk space usage
+    disk_usage=$(sshpass -p "${vm_passwords[$vm]}" ssh ubuntu@$vm "df -h / | awk 'NR==2 {print \$5}'")
+    echo "Disk Usage: $disk_usage"
+
+    # Send email
+    mail -s "VM Update: $vm" $recipient_email <<EOF
+    VM: $vm
+    CPU Usage: $cpu_usage%
+    RAM Usage: $ram_usage%
+    Disk Usage: $disk_usage
+EOF
+
+    echo "Email sent to $recipient_email"
+    echo "------------------------"
+done
+
+
+
+
